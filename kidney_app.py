@@ -2,7 +2,10 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import pickle
+import sklearn
+import streamlit as st
 
+st.write("scikit-learn version:", sklearn.__version__)
 # Load trained components
 with open("xgb_model.pkl", "rb") as f:
     model = pickle.load(f)
