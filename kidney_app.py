@@ -1,10 +1,11 @@
 import streamlit as st
 import numpy as np
 from PIL import Image
-import joblib
+import pickle
 
 # Load trained components
-model = joblib.load("xgb_model.pkl")
+with open("xgb_model.pkl", "rb") as f:
+    model = pickle.load(f)
 import pickle
 
 with open("pca_transform.pkl", "rb") as f:
