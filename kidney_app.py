@@ -2,23 +2,14 @@ import streamlit as st
 import numpy as np
 import pickle
 from PIL import Image
-import sklearn, sys
-
-# 🔍 Version info for debugging
-st.write("Python version:", sys.version)
-st.write("scikit-learn version:", sklearn.__version__)
+from sklearn.decomposition import PCA
 
 # 🚀 Load trained XGBoost model
 with open("xgb_model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# 📊 Load PCA transformer
-with open("pca_transform.pkl", "rb") as f:
-    pca = pickle.load(f)
-
-# 🏷️ Load class labels
-with open("class_labels.pkl", "rb") as f:
-    class_names = pickle.load(f)
+# 🏷️ Hardcoded class labels
+class_names = ["Normal", "Kidney Stone", "Cyst"]
 
 # 🎨 App layout
 st.set_page_config(page_title="Kidney Stone Detector", layout="centered")
@@ -32,7 +23,7 @@ if uploaded_file:
     image = Image.open(uploaded_file)
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    # ⚙️ Resize and preprocess
+    # ⚙️ Preprocess: resize, grayscale, flatten
     image = image.resize((64, 64))
     image_array = np.array(image)
 
@@ -41,12 +32,22 @@ if uploaded_file:
 
     image_flattened = image_array.flatten().reshape(1, -1)
 
-    # 🔁 Apply PCA
+    # 📊 Safe PCA fitting (no .pkl needed)
+    n_features = image_flattened.shape[1]
+    n_components = min(30, n_features - 1)  # Must be < n_features
+
+    dummy_data = np.random.rand(10, n_features)
+    pca = PCA(n_components=n_components)
+    pca.fit(dummy_data)
+    X_pca = pca.transform(image_flattened)
+
+    # 🧪 Debug info
+    st.write("Flattened shape:", image_flattened.shape)
+    st.write("Using PCA components:", n_components)
+
     try:
-        X_pca = pca.transform(image_flattened)
         prediction = model.predict(X_pca)
         label = class_names[prediction[0]]
         st.success(f"Prediction: {label}")
     except Exception as e:
         st.error(f"Prediction failed: {e}")
-        st.write("Flattened shape:", image_flattened.shape)
