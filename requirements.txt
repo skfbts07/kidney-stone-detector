@@ -4,4 +4,3 @@ xgboost==1.7.6
 numpy==1.24.4
 pandas
 Pillow
-joblib
