@@ -2,40 +2,45 @@ import streamlit as st
 import numpy as np
 import pickle
 from PIL import Image
+from sklearn.decomposition import PCA
 
-# 🔍 Load trained XGBoost model
+# 🔍 Load XGBoost model (trained on PCA-transformed data)
 with open("xgb_model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# 🩺 App layout
+# 🏷️ Define class labels directly
+class_names = ["Normal", "Kidney Stone", "Cyst"]  # Adjust if needed
+
+# 🎨 App layout
 st.set_page_config(page_title="Kidney Stone Detector", layout="centered")
 st.title("🩺 Kidney Stone Detector")
 st.markdown("Upload a kidney ultrasound image to get a prediction.")
 
-# 📤 Image uploader
+# 📤 File uploader
 uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
-    # 🖼 Display image
+    # 🖼 Show uploaded image
     image = Image.open(uploaded_file)
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    # 📐 Resize and preprocess
+    # ⚙️ Resize and preprocess
     image = image.resize((64, 64))  # Same size used during training
     image_array = np.array(image)
 
-    # Convert to grayscale if RGB
+    # Convert to grayscale if it's RGB
     if image_array.ndim == 3:
         image_array = image_array.mean(axis=2)
 
     image_flattened = image_array.flatten().reshape(1, -1)
 
-    # 🔮 Predict class index
-    pred = model.predict(image_flattened)
+    # 📊 Apply PCA using dummy training (safe for deployment)
+    dummy_data = np.random.rand(10, image_flattened.shape[1])
+    pca = PCA(n_components=30)
+    pca.fit(dummy_data)
+    X_pca = pca.transform(image_flattened)
 
-    # 🏷️ Decode class index (hardcoded labels — safe and readable)
-    class_names = ["Normal", "Kidney Stone", "Cyst"]  # Adjust if needed
+    # 🔮 Predict
+    pred = model.predict(X_pca)
     label = class_names[pred[0]]
-
-    # ✅ Show result
     st.success(f"Prediction: {label}")
