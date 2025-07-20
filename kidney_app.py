@@ -5,7 +5,10 @@ import joblib
 
 # Load trained components
 model = joblib.load("xgb_model.pkl")
-pca = joblib.load("pca_transform.pkl")
+import pickle
+
+with open("pca_transform.pkl", "rb") as f:
+    pca = pickle.load(f)
 class_names = joblib.load("class_labels.pkl")
 
 st.set_page_config(page_title="Kidney Stone Detection", layout="centered")
